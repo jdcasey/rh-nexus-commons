@@ -164,6 +164,7 @@ public class VelocityTemplateFormatter
             velocity = velocityComponent.getEngine();
         }
 
+        logger.info( "Checking template directory..." );
         if ( templatesDir == null && configuration != null )
         {
             templatesDir = joinFile( configuration.getConfigurationDirectory(), "templates" );
@@ -180,6 +181,8 @@ public class VelocityTemplateFormatter
             {
                 templatesDir.mkdirs();
             }
+
+            logger.info( "Template directory: " + templatesDir );
         }
     }
 
