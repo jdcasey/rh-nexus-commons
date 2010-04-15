@@ -193,7 +193,15 @@ public class VelocityTemplateFormatter
 
         if ( templatesDir != null && templatesDir.exists() && templatesDir.isDirectory() )
         {
-            final File templateFile = new File( templatesDir, templatePath );
+            File templateFile;
+            if ( templatePath.startsWith( templatesDir.getName() ) )
+            {
+                templateFile = new File( templatesDir.getParentFile(), templatePath );
+            }
+            else
+            {
+                templateFile = new File( templatesDir, templatePath );
+            }
 
             if ( templateFile.exists() && templateFile.isFile() )
             {
