@@ -154,6 +154,8 @@ public class VelocityTemplateFormatter
                                          e, templatePath, e.getMessage() );
         }
 
+        logger.info( "rendered output:\n\n" + writer.toString() + "\n\n" );
+
         return writer.toString();
     }
 
