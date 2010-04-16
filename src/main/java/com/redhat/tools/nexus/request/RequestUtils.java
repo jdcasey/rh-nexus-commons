@@ -29,7 +29,7 @@ public final class RequestUtils
     // that don't.
     private static final String[] URL_DATE_FORMATs =
         { FULL_DATE_FORMAT, "yyyy-MM-dd HH-mm-ssZ", "yyyy-MM-dd_HH-mm-ssZ", "yyyy-MM-dd+HH-mm-ss",
-            "yyyy-MM-dd HH-mm-ss", "yyyy-MM-dd", "MMM dd, yyyy hh:mm:ss a" };
+            "yyyy-MM-dd HH-mm-ss", "yyyy-MM-dd", "MMM dd, yyyy hh:mm:ss a", "yyyy-MM-dd HH:mm:ss Z" };
 
     public static final String PARAM_MODE = "mode";
 
@@ -117,11 +117,11 @@ public final class RequestUtils
                 }
                 catch ( final ParseException e )
                 {
-                    if ( logger.isDebugEnabled() )
-                    {
-                        logger.debug( String.format( "Failed to parse date: '%s' using format: '%s'\nReason: %s",
-                                                     value, format, e.getMessage() ) );
-                    }
+                    //                    if ( logger.isDebugEnabled() )
+                    //                    {
+                    logger.info( String.format( "Failed to parse date: '%s' using format: '%s'\nReason: %s", value,
+                                                format, e.getMessage() ) );
+                    //                    }
 
                     if ( originalError == null )
                     {
