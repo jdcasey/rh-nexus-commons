@@ -117,11 +117,11 @@ public final class RequestUtils
                 }
                 catch ( final ParseException e )
                 {
-                    //                    if ( logger.isDebugEnabled() )
-                    //                    {
-                    logger.info( String.format( "Failed to parse date: '%s' using format: '%s'\nReason: %s", value,
-                                                format, e.getMessage() ) );
-                    //                    }
+                    if ( logger.isDebugEnabled() )
+                    {
+                        logger.debug( String.format( "Failed to parse date: '%s' using format: '%s'\nReason: %s",
+                                                     value, format, e.getMessage() ) );
+                    }
 
                     if ( originalError == null )
                     {
