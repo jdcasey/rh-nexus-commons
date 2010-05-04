@@ -72,7 +72,7 @@ public class VelocityTemplateFormatter
         }
         else
         {
-            logger.error( "Cannot find classpath URL for: %s" );
+            logger.error( "Cannot find classpath URL for: " + cpath );
         }
 
         LOCAL_LOADER = ucl;

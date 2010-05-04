@@ -35,6 +35,23 @@ public final class PathUtils
         return f;
     }
 
+    /**
+     * NOTE: This doesn't normalize mixed-file-separator cases, where '/' is mixed with '\' in paths.
+     */
+    public static File joinFile( final String dir, final String... parts )
+    {
+        if ( dir == null )
+        {
+            return null;
+        }
+
+        final String path = concat( PATH_SLASH, parts );
+
+        final File f = new File( dir, path );
+
+        return f;
+    }
+
     private static String concat( final char separator, final String... parts )
     {
         final StringBuilder builder = new StringBuilder();

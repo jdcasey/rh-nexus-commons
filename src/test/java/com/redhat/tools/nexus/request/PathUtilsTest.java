@@ -73,7 +73,7 @@ public class PathUtilsTest
     @Test
     public void joinFile_ReturnNullWhenBaseDirIsNull()
     {
-        assertNull( joinFile( null, "path", "to", "something" ) );
+        assertNull( joinFile( (File) null, "path", "to", "something" ) );
     }
 
     @Test
