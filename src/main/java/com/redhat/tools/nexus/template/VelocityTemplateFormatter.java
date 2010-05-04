@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,42 +41,62 @@ public class VelocityTemplateFormatter
 
     private static final Logger logger = LoggerFactory.getLogger( VelocityTemplateFormatter.class );
 
-    private static final URLClassLoader LOCAL_LOADER;
+    private static final ClassLoader LOCAL_LOADER;
+
+    private static final String TEMPLATE_RESOURCE_MARKER_PATH = "META-INF/nexus/template-resource-marker.txt";
 
     static
     {
-        URLClassLoader ucl = null;
+        ClassLoader ucl = null;
 
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        final String cpath = VelocityTemplateFormatter.class.getName().replace( '.', '/' ) + ".class";
-        final URL resource = cl.getResource( cpath );
-
-        if ( resource != null )
+        Enumeration<URL> resources = null;
+        try
         {
-            String path = resource.toExternalForm();
-            final int idx = path.indexOf( '!' );
-            if ( path.startsWith( "jar:" ) && idx > -1 )
+            resources = cl.getResources( TEMPLATE_RESOURCE_MARKER_PATH );
+        }
+        catch ( final IOException e )
+        {
+            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
+                + "; using thread-context classpath instead.\nReason: " + e.getMessage() );
+        }
+
+        if ( resources != null )
+        {
+            final List<URL> urls = new ArrayList<URL>();
+            while ( resources.hasMoreElements() )
             {
-                path = path.substring( "jar:".length(), idx );
+                final URL resource = resources.nextElement();
+                String path = resource.toExternalForm();
+                final int idx = path.indexOf( '!' );
+                if ( path.startsWith( "jar:" ) && idx > -1 )
+                {
+                    path = path.substring( "jar:".length(), idx );
+                }
+
+                try
+                {
+                    urls.add( new URL( path ) );
+                }
+                catch ( final MalformedURLException e )
+                {
+                    logger.error( String.format( "Cannot create base URL for local plugin jar: %s\nReason: %s", path,
+                                                 e.getMessage() ), e );
+                }
             }
 
-            try
+            if ( urls != null && !urls.isEmpty() )
             {
-                final URL base = new URL( path );
-                ucl = new URLClassLoader( new URL[] { base } );
-            }
-            catch ( final MalformedURLException e )
-            {
-                logger.error( String.format( "Cannot create base URL for local plugin jar: %s\nReason: %s", path,
-                                             e.getMessage() ), e );
+                ucl = new URLClassLoader( urls.toArray( new URL[] {} ) );
             }
         }
         else
         {
-            logger.error( "Cannot find classpath URL for: " + cpath );
+            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
+                + "; using thread-context classpath instead." );
         }
 
-        LOCAL_LOADER = ucl;
+        LOCAL_LOADER = ucl == null ? cl : ucl;
     }
 
     @Inject
