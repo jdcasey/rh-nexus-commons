@@ -11,6 +11,8 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.MethodInvocationException;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
 import org.codehaus.plexus.velocity.VelocityComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,70 +36,16 @@ import java.util.Map;
 
 @Named( "velocity" )
 public class VelocityTemplateFormatter
-    implements TemplateFormatter
+    implements TemplateFormatter, Initializable
 {
 
     private static final String DEFAULT_TEMPLATE_NAME = "default.vm";
 
     private static final Logger logger = LoggerFactory.getLogger( VelocityTemplateFormatter.class );
 
-    private static final ClassLoader LOCAL_LOADER;
+    private ClassLoader localLoader;
 
     private static final String TEMPLATE_RESOURCE_MARKER_PATH = "META-INF/nexus/template-resource-marker.txt";
-
-    static
-    {
-        ClassLoader ucl = null;
-
-        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> resources = null;
-        try
-        {
-            resources = cl.getResources( TEMPLATE_RESOURCE_MARKER_PATH );
-        }
-        catch ( final IOException e )
-        {
-            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
-                + "; using thread-context classpath instead.\nReason: " + e.getMessage() );
-        }
-
-        if ( resources != null )
-        {
-            final List<URL> urls = new ArrayList<URL>();
-            while ( resources.hasMoreElements() )
-            {
-                final URL resource = resources.nextElement();
-                String path = resource.toExternalForm();
-                final int idx = path.indexOf( '!' );
-                if ( path.startsWith( "jar:" ) && idx > -1 )
-                {
-                    path = path.substring( "jar:".length(), idx );
-                }
-
-                try
-                {
-                    urls.add( new URL( path ) );
-                }
-                catch ( final MalformedURLException e )
-                {
-                    logger.error( String.format( "Cannot create base URL for local plugin jar: %s\nReason: %s", path,
-                                                 e.getMessage() ), e );
-                }
-            }
-
-            if ( urls != null && !urls.isEmpty() )
-            {
-                ucl = new URLClassLoader( urls.toArray( new URL[] {} ) );
-            }
-        }
-        else
-        {
-            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
-                + "; using thread-context classpath instead." );
-        }
-
-        LOCAL_LOADER = ucl == null ? cl : ucl;
-    }
 
     @Inject
     private ApplicationConfiguration configuration;
@@ -250,9 +198,9 @@ public class VelocityTemplateFormatter
         if ( template == null )
         {
             final List<ClassLoader> cloaders = new ArrayList<ClassLoader>();
-            if ( LOCAL_LOADER != null )
+            if ( localLoader != null )
             {
-                cloaders.add( LOCAL_LOADER );
+                cloaders.add( localLoader );
             }
             cloaders.add( Thread.currentThread().getContextClassLoader() );
 
@@ -296,6 +244,62 @@ public class VelocityTemplateFormatter
         }
 
         return template;
+    }
+
+    @Override
+    public void initialize()
+        throws InitializationException
+    {
+        ClassLoader ucl = null;
+
+        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        Enumeration<URL> resources = null;
+        try
+        {
+            resources = cl.getResources( TEMPLATE_RESOURCE_MARKER_PATH );
+        }
+        catch ( final IOException e )
+        {
+            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
+                + "; using thread-context classpath instead.\nReason: " + e.getMessage() );
+        }
+
+        if ( resources != null )
+        {
+            final List<URL> urls = new ArrayList<URL>();
+            while ( resources.hasMoreElements() )
+            {
+                final URL resource = resources.nextElement();
+                String path = resource.toExternalForm();
+                final int idx = path.indexOf( '!' );
+                if ( path.startsWith( "jar:" ) && idx > -1 )
+                {
+                    path = path.substring( "jar:".length(), idx );
+                }
+
+                try
+                {
+                    urls.add( new URL( path ) );
+                }
+                catch ( final MalformedURLException e )
+                {
+                    logger.error( String.format( "Cannot create base URL for local plugin jar: %s\nReason: %s", path,
+                                                 e.getMessage() ), e );
+                }
+            }
+
+            if ( urls != null && !urls.isEmpty() )
+            {
+                ucl = new URLClassLoader( urls.toArray( new URL[] {} ) );
+            }
+        }
+        else
+        {
+            logger.error( "Cannot find classpath URL for: " + TEMPLATE_RESOURCE_MARKER_PATH
+                + "; using thread-context classpath instead." );
+        }
+
+        localLoader = ucl == null ? cl : ucl;
     }
 
 }
