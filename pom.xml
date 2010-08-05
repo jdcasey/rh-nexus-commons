@@ -36,6 +36,14 @@
     <url>http://github.com/jdcasey/rh-nexus-commons</url>
   </scm>
   
+  <licenses>
+    <license>
+      <name>GNU General Public License, v3</name>
+      <url>http://www.gnu.org/licenses/gpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
   <distributionManagement>
     <repository>
       <id>nexus</id>
